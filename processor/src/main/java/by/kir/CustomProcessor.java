@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -17,21 +18,21 @@ import javax.tools.JavaFileObject;
 
 @SupportedAnnotationTypes({"*"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
+@CustomAnnotation(className = "1")
 public class CustomProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        Stream.empty().forEach(__ -> System.out.println(__));
 
         for (Element e : roundEnv.getElementsAnnotatedWith(CustomAnnotation.class)) {
             CustomAnnotation ca = e.getAnnotation(CustomAnnotation.class);
             String name = e.getSimpleName().toString();
-            char[] c = name.toCharArray();
-            c[0] = Character.toUpperCase(c[0]);
             name = new String(name);
             TypeElement clazz = (TypeElement) e.getEnclosingElement();
             try {
                 JavaFileObject f = processingEnv.getFiler().
-                    createSourceFile(clazz.getQualifiedName() + "Autogenerate");
+                    createSourceFile(clazz.getQualifiedName() + "G");
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
                     "Creating " + f.toUri());
                 Writer w = f.openWriter();
@@ -41,24 +42,7 @@ public class CustomProcessor extends AbstractProcessor {
                     pw.println("package "
                         + pack.substring(0, pack.lastIndexOf('.')) + ";");
                     pw.println("\npublic class "
-                        + clazz.getSimpleName() + "Autogenerate {");
-
-                    TypeMirror type = e.asType();
-
-                    pw.println(
-                        "\n    public " + ca.className() + " result = \"" + ca.value() + "\";");
-
-                    pw.println("    public int type = " + ca.type() + ";");
-
-                    pw.println("\n    protected " + clazz.getSimpleName()
-                        + "Autogenerate() {}");
-                    pw.println("\n    /** Handle something. */");
-                    pw.println("    protected final void handle" + name
-                        + "(" + ca.className() + " value" + ") {");
-                    pw.println("\n//" + e);
-                    pw.println("//" + ca);
-                    pw.println("\n        System.out.println(value);");
-                    pw.println("    }");
+                        + clazz.getSimpleName()+"G" + "{");
                     pw.println("}");
                     pw.flush();
                 } finally {
